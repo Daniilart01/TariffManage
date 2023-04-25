@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="327.0" prefWidth="582.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nure.tariffmanage.LoginController">
+    <Label layoutX="244.0" layoutY="60.0" prefHeight="30.0" prefWidth="90.0" style="-fx-text-fill: #A9A9A9;" text="Login">
+        <font>
+            <Font name="SansSerif Regular" size="30.0" />
+        </font>
+    </Label>
+    <TextField fx:id="loginUsernameTextField" focusTraversable="false" layoutX="150.0" layoutY="100.0" onKeyTyped="#passwordAndUsernameInput" prefHeight="30.0" prefWidth="300.0" promptText="Username" style="-fx-border-width: 2; -fx-border-color: #A9A9A9; -fx-border-radius: 5;">
+        <font>
+            <Font name="SansSerif Regular" size="14.0" />
+        </font>
+        <cursor>
+            <Cursor fx:constant="TEXT" />
+        </cursor>
+    </TextField>
+    <ImageView fitHeight="40.0" fitWidth="35.0" layoutX="110.0" layoutY="100.0" pickOnBounds="true" preserveRatio="true">
+        <Image url="@users.png" />
+    </ImageView>
+    <PasswordField fx:id="loginPasswordPasswordField" focusTraversable="false" layoutX="150.0" layoutY="140.0" onKeyTyped="#passwordAndUsernameInput" prefHeight="30.0" prefWidth="300.0" promptText="Password" style="-fx-border-width: 2; -fx-border-color: #A9A9A9; -fx-border-radius: 5;">
+        <font>
+            <Font name="SansSerif Regular" size="14.0" />
+        </font>
+    </PasswordField>
+    <ImageView fitHeight="40.0" fitWidth="35.0" layoutX="110.0" layoutY="140.0" pickOnBounds="true" preserveRatio="true">
+        <Image url="@lock.png" />
+    </ImageView>
+    <CheckBox fx:id="rememberBox" focusTraversable="false" layoutX="150.0" layoutY="199.0" mnemonicParsing="false" style="-fx-text-fill: #A9A9A9;" text="Remember Me">
+        <font>
+            <Font name="SansSerif Regular" size="15.0" />
+        </font>
+    </CheckBox>
+    <Label fx:id="invalidLoginCredentials" alignment="CENTER" contentDisplay="CENTER" layoutX="150.0" layoutY="175.0" prefHeight="16.0" prefWidth="300.0" textAlignment="CENTER" textFill="RED">
+        <opaqueInsets>
+            <Insets />
+        </opaqueInsets>
+    </Label>
+    <Button fx:id="LoginButton" focusTraversable="false" layoutX="364.0" layoutY="193.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="21.0" prefWidth="76.0" style="-fx-background-color: #24a0ed; -fx-border-color: #24a0ed; -fx-border-radius: 5;" styleClass="blue" text="Login" textFill="WHITE">
+        <font>
+            <Font size="14.0" />
+        </font>
+    </Button>
+   <Hyperlink focusTraversable="false" layoutX="224.0" layoutY="226.0" onAction="#forgotPasswordPressed" text="Forgot your Password?" textFill="#8e8e8e" visited="true" />
+   <Hyperlink layoutX="560.0" layoutY="2.0" onAction="#closePressed" text="X">
+      <font>
+         <Font name="System Bold" size="12.0" />
+      </font>
+   </Hyperlink>
+
+</AnchorPane>
