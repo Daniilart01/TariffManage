@@ -7,8 +7,8 @@ public record TopUpsHistory(double amount, Date date) implements Comparable<TopU
     @Override
     public int compareTo(TopUpsHistory o) {
         if ((date.equals(o.date))) return 0;
-        else if (date.after(o.date)) return 1;
-        else return -1;
+        else if (date.after(o.date)) return -1;
+        else return 1;
 
     }
 }

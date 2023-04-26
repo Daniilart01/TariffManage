@@ -488,7 +488,7 @@ public class MainController {
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(sql);
         preparedStatement.setInt(1, TariffManageApp.USER);
         ResultSet resultSet = preparedStatement.executeQuery();
-        List<String> list = new ArrayList<>();
+        List<TariffUsageHistory> list = new ArrayList<>();
         while (resultSet.next()) {
             if (resultSet.getDate(3) == null || (resultSet.getDate(2).toLocalDate().plusDays(1).isAfter(beginningDatePicker.getValue()) &&
                     resultSet.getDate(2).toLocalDate().minusDays(1).isBefore(endDatePicker.getValue())) ||
@@ -511,25 +511,34 @@ public class MainController {
                                             LocalDate.now().minusDays(1).isBefore(endDatePicker.getValue())) ||
                             (resultSet.getDate(2).toLocalDate().minusDays(1).isBefore(beginningDatePicker.getValue()) &&
                                     LocalDate.now().plusDays(1).isAfter(endDatePicker.getValue()))) {
-                        list.add(String.format("Tariff: %s, Current tariff from  %s-%s-%s", resultSet.getString(1),
-                                resultSet.getDate(2).toLocalDate().getDayOfMonth(),
-                                resultSet.getDate(2).toLocalDate().getMonth(),
-                                resultSet.getDate(2).toLocalDate().getYear()));
+                        list.add(new TariffUsageHistory(resultSet.getString(1), resultSet.getDate(2),null));
                     }
                     continue;
                 }
-                list.add(String.format("Tariff: %s, From %s-%s-%s to %s-%s-%s", resultSet.getString(1),
-                        resultSet.getDate(2).toLocalDate().getDayOfMonth(),
-                        resultSet.getDate(2).toLocalDate().getMonth(),
-                        resultSet.getDate(2).toLocalDate().getYear(),
-                        resultSet.getDate(3).toLocalDate().getDayOfMonth(),
-                        resultSet.getDate(3).toLocalDate().getMonth(),
-                        resultSet.getDate(3).toLocalDate().getYear()));
+                list.add(new TariffUsageHistory(resultSet.getString(1), resultSet.getDate(2),
+                        resultSet.getDate(3)));
             }
         }
-        //TODO: rewrite sorting
+        List<String> stringList = new ArrayList<>();
         list = list.stream().sorted().toList();
-        statisticsListView.getItems().addAll(list);
+        for (TariffUsageHistory tariffUsageHistory : list) {
+            if(tariffUsageHistory.endDate() == null) {
+                stringList.add(String.format("Tariff: %s, Current tariff from  %s-%s-%s", tariffUsageHistory.tariffName(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getDayOfMonth(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getMonth(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getYear()));
+            }
+            else{
+                stringList.add(String.format("Tariff: %s, From %s-%s-%s to %s-%s-%s", tariffUsageHistory.tariffName(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getDayOfMonth(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getMonth(),
+                        tariffUsageHistory.beginingDate().toLocalDate().getYear(),
+                        tariffUsageHistory.endDate().toLocalDate().getDayOfMonth(),
+                        tariffUsageHistory.endDate().toLocalDate().getMonth(),
+                        tariffUsageHistory.endDate().toLocalDate().getYear()));
+            }
+        }
+        statisticsListView.getItems().addAll(stringList);
     }
 
     public void showTopUps(ActionEvent actionEvent) throws SQLException {
@@ -541,20 +550,22 @@ public class MainController {
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(sql);
         preparedStatement.setInt(1, TariffManageApp.USER);
         ResultSet resultSet = preparedStatement.executeQuery();
-        List<String> list = new ArrayList<>();
+        List<TopUpsHistory> list = new ArrayList<>();
         while (resultSet.next()) {
             if (resultSet.getDate(2).toLocalDate().plusDays(1).isAfter(beginningDatePicker.getValue()) &&
                     resultSet.getDate(2).toLocalDate().minusDays(1).isBefore(endDatePicker.getValue())) {
-                list.add(String.format("Date: %s-%s-%s : +%sUAH", resultSet.getDate(2).toLocalDate().getDayOfMonth(),
-                        resultSet.getDate(2).toLocalDate().getMonth(),
-                        resultSet.getDate(2).toLocalDate().getYear(),
-                        resultSet.getInt(1)));
+                list.add(new TopUpsHistory(resultSet.getDouble(1),resultSet.getDate(2)));
             }
         }
-
-        //TODO: rewrite sorting
+        List<String> stringList = new ArrayList<>();
         list = list.stream().sorted().toList();
-        statisticsListView.getItems().addAll(list);
+        for (TopUpsHistory topUpsHistory : list) {
+            stringList.add(String.format("Date: %s-%s-%s : +%sUAH", topUpsHistory.date().toLocalDate().getDayOfMonth(),
+                    topUpsHistory.date().toLocalDate().getMonth(),
+                    topUpsHistory.date().toLocalDate().getYear(),
+                    topUpsHistory.amount()));
+        }
+        statisticsListView.getItems().addAll(stringList);
     }
 
     private boolean checkDates() {

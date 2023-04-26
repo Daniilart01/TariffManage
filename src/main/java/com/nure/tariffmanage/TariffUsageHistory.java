@@ -7,8 +7,8 @@ public record TariffUsageHistory(String tariffName, Date beginingDate, Date endD
     @Override
     public int compareTo(TariffUsageHistory o) {
         if ((beginingDate.equals(o.beginingDate))) return 0;
-        else if (beginingDate.after(o.beginingDate)) return 1;
-        else return -1;
+        else if (beginingDate.after(o.beginingDate)) return -1;
+        else return 1;
 
     }
 }
