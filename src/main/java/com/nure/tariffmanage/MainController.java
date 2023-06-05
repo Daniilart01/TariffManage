@@ -1,33 +1,36 @@
 package com.nure.tariffmanage;
 
+import com.nure.tariffmanage.handlers.ChangeTariffEventHandle;
+import com.nure.tariffmanage.handlers.MouseEnteredEventHandle;
+import com.nure.tariffmanage.handlers.MouseExitedEventHandle;
+import com.nure.tariffmanage.handlers.TileRefreshEventHandler;
+import com.nure.tariffmanage.historyObjects.TariffUsageHistory;
+import com.nure.tariffmanage.historyObjects.TopUpsHistory;
+import com.nure.tariffmanage.utill.DBConnection;
+import com.nure.tariffmanage.utill.UserSessionWriter;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import eu.hansolo.tilesfx.skins.BarChartItem;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
-import java.sql.Date;
-
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import oracle.jdbc.proxy.annotation.Pre;
-import oracle.jdbc.replay.driver.TxnReplayableArray;
 
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Date;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.*;
@@ -45,10 +48,8 @@ public class MainController {
     @FXML
     private Label numberField;
     @FXML
-    private GridPane gridPaneDown;
+    public GridPane gridPaneDown;
 
-    public ArrayList<ArrayList<String>> addons;
-    public ArrayList<String> tariffs;
     public ArrayList<String> userData;
     private Date tariffPaidUntil;
     @FXML
@@ -64,10 +65,17 @@ public class MainController {
     private ListView<String> statisticsListView;
     @FXML
     private Label invalidDatesLabel;
+    @FXML
+    private HBox box;
+    public String shadowStyleString = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);";
+
+    public static MainController mainController;
+
 
     public void initialize() throws SQLException {
         //PHONE_NUMBER(0),BALANCE(1),TARIFF_NAME(2),TARIFF_COST(3),GIGABYTES(4),MINUTES_OUT(5),MINUTES_ABROAD(6),
         //GIGABYTES_LEFT(7),MINUTES_OUT_LEFT(8),MINUTES_ABROAD_LEFT(9),LOGIN(10)
+        mainController = this;
         checkAddons();
         userData = getUserData();
         helloLabel.setText(userData.get(10) + "!");
@@ -84,6 +92,82 @@ public class MainController {
         } else {
             initTiles();
         }
+        initTariffs();
+    }
+
+    public void initTariffs() throws SQLException {
+        box.getChildren().clear();
+        String sql = "Select * from tariffs";
+        Statement statement = DBConnection.getConnection().createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        List<VBox> list = new ArrayList<>();
+        while (resultSet.next()) {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.TOP_CENTER);
+            vBox.setMinWidth(200);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+            vBox.getStyleClass().add("tariff");
+
+            vBox.setOnMouseExited(new MouseExitedEventHandle(vBox));
+            vBox.setOnMouseEntered(new MouseEnteredEventHandle(vBox));
+
+            Label nameLabel = new Label(resultSet.getString("Tariff_name"));
+            nameLabel.setStyle("-fx-text-fill:#44b5fe; -fx-font-size:25px; -fx-font-weight: bold");
+            vBox.getChildren().add(nameLabel);
+
+            Label gigabytesLabel = new Label("Internet:");
+            gigabytesLabel.setStyle("-fx-font-size: 12");
+            gigabytesLabel.setPadding(new Insets(14, 0, 0, 0));
+            vBox.getChildren().add(gigabytesLabel);
+            Label gigabytesLabel1 = new Label(resultSet.getString("GIGABYTES") + " GB");
+            gigabytesLabel1.setStyle("-fx-font-weight:bold; -fx-font-size: 15");
+            vBox.getChildren().add(gigabytesLabel1);
+
+            Label minutesInLabel = new Label("Minutes in network:");
+            minutesInLabel.setPadding(new Insets(6, 0, 0, 0));
+            vBox.getChildren().add(minutesInLabel);
+            Label minutesInLabel1 = new Label("UNLIMITED");
+            minutesInLabel1.setStyle("-fx-font-weight:bold; -fx-font-size: 15");
+            vBox.getChildren().add(minutesInLabel1);
+
+            Label minutesOutLabel = new Label("Calls to other operators:");
+            minutesOutLabel.setPadding(new Insets(6, 0, 0, 0));
+            vBox.getChildren().add(minutesOutLabel);
+            Label minutesOutLabel1 = new Label(resultSet.getString("MINUTES_OUT") + " min");
+            minutesOutLabel1.setStyle("-fx-font-weight:bold; -fx-font-size: 15");
+            vBox.getChildren().add(minutesOutLabel1);
+
+            Label minutesAbroadLabel = new Label("Calls abroad:");
+            minutesAbroadLabel.setPadding(new Insets(6, 0, 0, 0));
+            vBox.getChildren().add(minutesAbroadLabel);
+            Label minutesAbroadLabel1 = new Label(resultSet.getString("MINUTES_ABROAD") + " min");
+            minutesAbroadLabel1.setStyle("-fx-font-weight:bold; -fx-font-size: 15");
+            vBox.getChildren().add(minutesAbroadLabel1);
+
+            FlowPane flowPane = new FlowPane();
+            flowPane.setAlignment(Pos.TOP_CENTER);
+            Label label = new Label("Price: ");
+            Label price = new Label(Math.round(resultSet.getDouble("TARIFF_COST")) + " UAH");
+            Label days = new Label("/28 days");
+            price.setStyle("-fx-text-fill: #44b5fe; -fx-font-weight:bold; -fx-font-size: 15");
+            days.setStyle("-fx-font-size: 12");
+            Button button;
+            if (userData.get(2).equals(resultSet.getString("Tariff_Name"))) {
+                button = new Button("Your Tariff");
+                button.setDisable(true);
+            } else {
+                button = new Button("Change");
+            }
+            button.getStyleClass().add("change-button");
+            button.setOnAction(new ChangeTariffEventHandle(resultSet.getString("TARIFF_NAME")));
+
+            flowPane.getChildren().addAll(label, price, days, button);
+            flowPane.setPadding(new Insets(10, 0, 0, 0));
+            vBox.getChildren().add(flowPane);
+
+            list.add(vBox);
+        }
+        box.getChildren().addAll(list);
     }
 
     private void checkAddons() throws SQLException {
@@ -115,7 +199,6 @@ public class MainController {
     }
 
     private void initTiles() throws SQLException {
-        String shadowStyleString = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);";
 
         tariffField.setText(userData.get(2));
 
@@ -169,10 +252,6 @@ public class MainController {
         tile.setStyle(shadowStyleString);
 
         gridPaneUP.add(tile, 3, 0);
-
-        tile = initAddonsTile();
-        tile.setStyle(shadowStyleString);
-        gridPaneDown.add(tile, 1, 0);
 
         tile = initBalanceTile();
         tile.setStyle(shadowStyleString);
@@ -232,6 +311,12 @@ public class MainController {
             }
         });
         gridPaneDown.add(tile, 0, 0);
+
+        tile = initAddonsTile();
+        tile.setStyle(shadowStyleString);
+        tile.setOnMouseClicked(new TileRefreshEventHandler());
+        gridPaneDown.add(tile, 1, 0);
+
     }
 
     private void topUp(int val) throws SQLException {
@@ -253,17 +338,15 @@ public class MainController {
                     isTariffActive = true;
                     unpaidLabel.setVisible(false);
                     reorderTariff();
-                }
-                else{
+                } else {
                     resultSet.updateDouble("BALANCE", resultSet.getDouble("BALANCE") + val);
                 }
-            }
-            else {
+            } else {
                 resultSet.updateDouble("BALANCE", resultSet.getDouble("BALANCE") + val);
             }
             resultSet.updateRow();
             userData = getUserData();
-            Tile tile = (Tile) gridPaneDown.getChildren().get(1);
+            Tile tile = (Tile) gridPaneDown.getChildren().get(0);
             tile.setValue(resultSet.getDouble("BALANCE"));
             if (isTariffActive) {
                 if (tile.getValue() > Double.parseDouble(userData.get(3))) {
@@ -299,7 +382,7 @@ public class MainController {
                 .build();
     }
 
-    private Tile initAddonsTile() throws SQLException {
+    public Tile initAddonsTile() throws SQLException {
         List<BarChartItem> barChartItems = new ArrayList<>();
         HashMap<ArrayList<String>, Date> map = getUserAddons();
         for (Map.Entry<ArrayList<String>, Date> dateArrayListEntry : map.entrySet()) {
@@ -323,7 +406,7 @@ public class MainController {
             barChartItems.add(barChartItem);
         }
         return TileBuilder.create().skinType(Tile.SkinType.BAR_CHART).barChartItems(barChartItems)
-                .title("Add-ons")
+                .title("Add-ons (Press to browse available)")
                 .titleColor(Color.BLACK)
                 .valueColor(Color.BLACK)
                 .textColor(Color.BLACK)
@@ -358,7 +441,7 @@ public class MainController {
         Platform.exit();
     }
 
-    private ArrayList<String> getUserData() throws SQLException {
+    public ArrayList<String> getUserData() throws SQLException {
         String sql = "select * from clients C INNER JOIN tariffs T ON C.TARIFF_ID = T.ID WHERE C.ID = ?";
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(sql);
         preparedStatement.setInt(1, TariffManageApp.USER);
@@ -406,7 +489,7 @@ public class MainController {
                 .backgroundColor(Color.WHITE)
                 .textSize(Tile.TextSize.BIGGER)
                 .textColor(Color.BLACK).textAlignment(TextAlignment.CENTER)
-                .image(new Image("C:\\JavaProjects\\TariffManage\\src\\main\\resources\\com\\nure\\tariffmanage\\infinity.png"))
+                .image(new Image(String.valueOf(TariffManageApp.class.getResource("Images/infinity.png"))))
                 .build();
     }
 
@@ -439,10 +522,10 @@ public class MainController {
         }
     }
 
-    private void reorderTariff() throws SQLException {
+    public void reorderTariff() throws SQLException {
         gridPaneUP.getChildren().clear();
         gridPaneDown.getChildren().clear();
-        if (isTariffActive) {
+        if (isTariffActive || Double.parseDouble(userData.get(1)) >= Double.parseDouble(userData.get(3))) {
             updateUserTariffData();
         }
         initTiles();
@@ -479,8 +562,8 @@ public class MainController {
         invalidDatesLabel.setText("");
     }
 
-    public void showTariffs(ActionEvent actionEvent) throws SQLException {
-        if (!checkDates()) {
+    public void showTariffs() throws SQLException {
+        if (checkDates()) {
             return;
         }
         statisticsListView.getItems().clear();
@@ -511,7 +594,7 @@ public class MainController {
                                             LocalDate.now().minusDays(1).isBefore(endDatePicker.getValue())) ||
                             (resultSet.getDate(2).toLocalDate().minusDays(1).isBefore(beginningDatePicker.getValue()) &&
                                     LocalDate.now().plusDays(1).isAfter(endDatePicker.getValue()))) {
-                        list.add(new TariffUsageHistory(resultSet.getString(1), resultSet.getDate(2),null));
+                        list.add(new TariffUsageHistory(resultSet.getString(1), resultSet.getDate(2), null));
                     }
                     continue;
                 }
@@ -522,13 +605,12 @@ public class MainController {
         List<String> stringList = new ArrayList<>();
         list = list.stream().sorted().toList();
         for (TariffUsageHistory tariffUsageHistory : list) {
-            if(tariffUsageHistory.endDate() == null) {
+            if (tariffUsageHistory.endDate() == null) {
                 stringList.add(String.format("Tariff: %s, Current tariff from  %s-%s-%s", tariffUsageHistory.tariffName(),
                         tariffUsageHistory.beginingDate().toLocalDate().getDayOfMonth(),
                         tariffUsageHistory.beginingDate().toLocalDate().getMonth(),
                         tariffUsageHistory.beginingDate().toLocalDate().getYear()));
-            }
-            else{
+            } else {
                 stringList.add(String.format("Tariff: %s, From %s-%s-%s to %s-%s-%s", tariffUsageHistory.tariffName(),
                         tariffUsageHistory.beginingDate().toLocalDate().getDayOfMonth(),
                         tariffUsageHistory.beginingDate().toLocalDate().getMonth(),
@@ -541,8 +623,8 @@ public class MainController {
         statisticsListView.getItems().addAll(stringList);
     }
 
-    public void showTopUps(ActionEvent actionEvent) throws SQLException {
-        if (!checkDates()) {
+    public void showTopUps() throws SQLException {
+        if (checkDates()) {
             return;
         }
         statisticsListView.getItems().clear();
@@ -554,7 +636,7 @@ public class MainController {
         while (resultSet.next()) {
             if (resultSet.getDate(2).toLocalDate().plusDays(1).isAfter(beginningDatePicker.getValue()) &&
                     resultSet.getDate(2).toLocalDate().minusDays(1).isBefore(endDatePicker.getValue())) {
-                list.add(new TopUpsHistory(resultSet.getDouble(1),resultSet.getDate(2)));
+                list.add(new TopUpsHistory(resultSet.getDouble(1), resultSet.getDate(2)));
             }
         }
         List<String> stringList = new ArrayList<>();
@@ -571,12 +653,13 @@ public class MainController {
     private boolean checkDates() {
         if (beginningDatePicker.getValue() == null || endDatePicker.getValue() == null) {
             invalidDatesLabel.setText("Fill both dates");
-            return false;
+            return true;
         }
         if (beginningDatePicker.getValue().isAfter(endDatePicker.getValue())) {
             invalidDatesLabel.setText("End date can not be after beginning date");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
+
 }

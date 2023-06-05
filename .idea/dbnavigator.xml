@@ -13,7 +13,7 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="aebb7022-5396-44d2-b213-628b744a1750">
-      <console name="Connection" type="STANDARD" schema="MANAGER" session="Main"><![CDATA[select Tariff_Cost from Clients c inner join tariffs t on c.tariff_id = t.id where c.id =1]]></console>
+      <console name="Connection" type="STANDARD" schema="MANAGER" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">

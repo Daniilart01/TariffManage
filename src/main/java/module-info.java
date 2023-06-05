@@ -17,4 +17,10 @@ module com.nure.tariffmanage {
 
     opens com.nure.tariffmanage to javafx.fxml;
     exports com.nure.tariffmanage;
+    exports com.nure.tariffmanage.utill;
+    opens com.nure.tariffmanage.utill to javafx.fxml;
+    exports com.nure.tariffmanage.handlers;
+    opens com.nure.tariffmanage.handlers to javafx.fxml;
+    exports com.nure.tariffmanage.historyObjects;
+    opens com.nure.tariffmanage.historyObjects to javafx.fxml;
 }

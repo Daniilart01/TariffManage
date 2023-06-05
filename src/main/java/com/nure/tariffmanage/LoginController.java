@@ -1,14 +1,14 @@
 package com.nure.tariffmanage;
 
+import com.nure.tariffmanage.utill.DBConnection;
+import com.nure.tariffmanage.utill.UserSessionWriter;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import javax.swing.text.PlainDocument;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -94,7 +94,7 @@ public class LoginController {
         return 0;
     }
     @FXML
-    public void closePressed(ActionEvent actionEvent) {
+    public void closePressed() {
         Platform.exit();
     }
 }
