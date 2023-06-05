@@ -1,6 +1,6 @@
 # Tariff Manage
 
-Application is a prototypr that allows you to manage your tarrif, check current balances and simulate balance top-ups.
+Tariff Manage is a prototype that allows you to manage your tarrif, check current balances and simulate balance top-ups.
 In direcroty Photos you can find photos of working app
 
 Firs init:
